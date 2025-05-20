@@ -1,11 +1,11 @@
 import { Text, View } from "react-native";
 
-const ExploreScreen = () => {
+const LibraryScreen = () => {
     return (
         <View>
-            <Text>Explore</Text>
+            <Text>Thư viện</Text>
         </View>
     );
 };
 
-export default ExploreScreen;
+export default LibraryScreen;

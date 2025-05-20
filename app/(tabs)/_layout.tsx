@@ -1,45 +1,59 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { Colors } from "@/constants/Colors";
+import Feather from "@expo/vector-icons/Feather";
+import { Tabs } from "expo-router";
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+export default function MainLayout() {
+    return (
+        <Tabs
+            screenOptions={{
+                tabBarActiveTintColor: Colors.light.tint,
+                tabBarLabelStyle: { fontSize: 12, fontFamily: "Inter-Regular" },
+            }}
+        >
+            <Tabs.Screen
+                name="index"
+                options={{
+                    tabBarLabel: "Trang chủ",
+                    tabBarIcon: ({ color, size }) => {
+                        return (
+                            <Feather name="home" size={size} color={color} />
+                        );
+                    },
+                }}
+            />
+            <Tabs.Screen
+                name="explore"
+                options={{
+                    tabBarLabel: "Khám phá",
+                    tabBarIcon: ({ color, size }) => {
+                        return (
+                            <Feather name="search" size={size} color={color} />
+                        );
+                    },
+                }}
+            />
+            <Tabs.Screen
+                name="library"
+                options={{
+                    tabBarLabel: "Thư viện",
+                    tabBarIcon: ({ color, size }) => {
+                        return (
+                            <Feather name="book" size={size} color={color} />
+                        );
+                    },
+                }}
+            />
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    tabBarLabel: "Cá nhân",
+                    tabBarIcon: ({ color, size }) => {
+                        return (
+                            <Feather name="user" size={size} color={color} />
+                        );
+                    },
+                }}
+            />
+        </Tabs>
+    );
 }

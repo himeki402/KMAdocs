@@ -1,17 +1,12 @@
 import { LoginForm } from "@/components/auth/LoginForm";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/authContext";
+import { router } from "expo-router";
 
 export default function LoginScreen() {
-    const { username, setUsername, password, setPassword, handleLogin, errors } =
-        useAuth();
-    return (
-        <LoginForm
-            username={username}
-            setUsername={setUsername}
-            password={password}
-            setPassword={setPassword}
-            handleLogin={handleLogin}
-            errors={errors}
-        />
-    );
+    const { isAuthenticated } = useAuth();
+    if (isAuthenticated) {
+        router.replace("/");
+        return null;
+    }
+    return <LoginForm />;
 }

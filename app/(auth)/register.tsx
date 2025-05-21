@@ -1,31 +1,13 @@
 import { RegisterForm } from "@/components/auth/RegisterForm";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/authContext";
+import { router } from "expo-router";
 
 export default function RegisterScreen() {
-    const {
-        name,
-        setName,
-        username,
-        setUsername,
-        password,
-        setPassword,
-        confirmPassword,
-        setConfirmPassword,
-        handleRegister,
-        errors,
-    } = useAuth();
-    return (
-        <RegisterForm
-            name={name}
-            setName={setName}
-            username={username}
-            setUsername={setUsername}
-            password={password}
-            setPassword={setPassword}
-            confirmPassword={confirmPassword}
-            setConfirmPassword={setConfirmPassword}
-            handleRegister={handleRegister}
-            errors={errors}
-        />
-    );
+    const { isAuthenticated } = useAuth();
+
+    if (isAuthenticated) {
+        router.replace("/");
+        return null;
+    }
+    return <RegisterForm />;
 }

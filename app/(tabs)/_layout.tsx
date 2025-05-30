@@ -1,6 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import Feather from "@expo/vector-icons/Feather";
 import { Tabs } from "expo-router";
+import { Text, View } from "react-native";
 
 export default function MainLayout() {
     return (
@@ -19,6 +20,43 @@ export default function MainLayout() {
                             <Feather name="home" size={size} color={color} />
                         );
                     },
+                    title: "Trang chủ",
+                    headerTitle: () => (
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 8,
+                            }}
+                        >
+                            <View
+                                style={{
+                                    backgroundColor: "#ef4444",
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 16,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Feather
+                                    name="layers"
+                                    size={16}
+                                    color="white"
+                                />
+                            </View>
+                            <Text
+                                style={{
+                                    fontSize: 18,
+                                    fontWeight: "bold",
+                                    color: "#ef4444",
+                                    fontFamily: "Inter-Bold",
+                                }}
+                            >
+                                KMA Document
+                            </Text>
+                        </View>
+                    ),
                 }}
             />
             <Tabs.Screen

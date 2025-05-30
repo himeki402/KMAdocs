@@ -1,5 +1,6 @@
+import { AuthResult, LoginCredentials, User } from "@/types/auth";
+import { TokenStorage } from "@/utils/tokenStorage";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
 import React, {
     createContext,
     ReactNode,
@@ -8,10 +9,8 @@ import React, {
     useState,
 } from "react";
 import { Alert } from "react-native";
-import { getUser, login, logout, register } from "../services/authService";
-import { User } from "../types";
+import { login, logout, register } from "../services/authService";
 import {
-    LoginFormData,
     RegisterFormData,
     validateLogin,
     validateRegister,
@@ -21,10 +20,7 @@ type AuthContextType = {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (
-        username: string,
-        password: string
-    ) => Promise<{ success: boolean; errors?: any }>;
+    login: (credentials: LoginCredentials) => Promise<AuthResult>;
     register: (
         name: string,
         username: string,
@@ -33,9 +29,7 @@ type AuthContextType = {
     ) => Promise<{ success: boolean; errors?: any }>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
-    getUser: () => Promise<void>;
-    errors: Record<string, string | undefined>;
-    clearErrors: () => void;
+    handleTokenExpired: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,91 +40,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     const [user, setUser] = useState<User | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [errors, setErrors] = useState<Record<string, string | undefined>>(
-        {}
-    );
 
-    const clearErrors = () => {
-        setErrors({});
-    };
-
-    // Check if user is authenticated on app start
     useEffect(() => {
         checkAuth();
     }, []);
 
     const checkAuth = async (): Promise<void> => {
-        setIsLoading(true);
         try {
-            const userString = await SecureStore.getItemAsync("user");
-            const token = await SecureStore.getItemAsync("accessToken");
+            setIsLoading(true);
+            const token = await TokenStorage.getToken();
+            const userInfo = await TokenStorage.getUserInfo();
 
-            if (userString && token) {
-                const userData = JSON.parse(userString) as User;
-                setUser(userData);
+            if (token && userInfo) {
+                setUser(userInfo);
                 setIsAuthenticated(true);
-                await fetchUser();
-            } else {
-                setUser(null);
-                setIsAuthenticated(false);
             }
         } catch (error) {
             console.error("Error checking authentication:", error);
-            setUser(null);
-            setIsAuthenticated(false);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const fetchUser = async (): Promise<void> => {
-        try {
-            const response = await getUser();
-            setUser(response.data);
-            await SecureStore.setItemAsync(
-                "user",
-                JSON.stringify(response.data)
-            );
-            setIsAuthenticated(true);
-        } catch (error) {
-            console.error("Lỗi khi lấy thông tin người dùng:", error);
-            setErrors({ form: "Không thể lấy thông tin người dùng" });
-            setUser(null);
-            setIsAuthenticated(false);
-        }
-    };
-
     const handleLogin = async (
-        username: string,
-        password: string
-    ): Promise<{ success: boolean; errors?: any }> => {
-        clearErrors();
-        setIsLoading(true);
-
+        credentials: LoginCredentials
+    ): Promise<AuthResult> => {
         // Validate input
-        const loginData: LoginFormData = { username, password };
-        const validation = validateLogin(loginData);
-
+        const validation = validateLogin(credentials);
         if (!validation.success) {
-            setErrors(validation.errors);
-            setIsLoading(false);
             return { success: false, errors: validation.errors };
         }
 
         try {
-            const response = await login(username, password);
-            setUser(response.data);
-            setIsAuthenticated(true);
-            await fetchUser();
-            await SecureStore.setItemAsync(
-                "user",
-                JSON.stringify(response.data)
+            const response = await login(
+                credentials.username,
+                credentials.password
             );
+            const { data: userInfo } = response;
+            setUser(userInfo);
+            setIsAuthenticated(true);
             router.push("/");
-            return { success: true };
+            return { success: true, user: userInfo };
         } catch (error: any) {
             const errorMessage = error.message || "Đăng nhập thất bại";
-            setErrors({ form: errorMessage });
             setIsAuthenticated(false);
             setIsLoading(false);
             return { success: false, errors: { form: errorMessage } };
@@ -145,7 +97,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         password: string,
         confirmPassword: string
     ): Promise<{ success: boolean; errors?: any }> => {
-        clearErrors();
         setIsLoading(true);
 
         // Validate input
@@ -158,7 +109,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         const validation = validateRegister(registerData);
 
         if (!validation.success) {
-            setErrors(validation.errors);
             setIsLoading(false);
             return { success: false, errors: validation.errors };
         }
@@ -171,36 +121,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             return { success: true };
         } catch (error: any) {
             const errorMessage = error.message || "Đăng ký thất bại";
-            setErrors({ form: errorMessage });
             setIsLoading(false);
             return { success: false, errors: { form: errorMessage } };
         }
     };
 
     const handleLogout = async (): Promise<void> => {
-        setIsLoading(true);
         try {
             await logout();
             setUser(null);
             setIsAuthenticated(false);
-            router.push("/login");
         } catch (error) {
             console.error("Logout error:", error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    const handleGetUser = async (): Promise<void> => {
-        setIsLoading(true);
-        try {
-            await fetchUser();
-        } catch (error) {
-            console.error("Error in handleGetUser:", error);
-            setErrors({ form: "Không thể lấy thông tin người dùng" });
-        } finally {
-            setIsLoading(false);
-        }
+    const handleTokenExpired = (): void => {
+        setUser(null);
+        setIsAuthenticated(false);
     };
 
     const value = {
@@ -210,10 +148,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         login: handleLogin,
         register: handleRegister,
         logout: handleLogout,
-        getUser: handleGetUser,
         checkAuth,
-        errors,
-        clearErrors,
+        handleTokenExpired,
     };
 
     return (

@@ -1,18 +1,31 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
-import { API_URL } from "../constants/api";
-import { getFromSecureStore, removeFromSecureStore } from "../utils/secureStore";
+import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { TokenStorage } from "@/utils/tokenStorage";
+import { ApiError } from "@/types/auth";
 
-// Tạo instance của axios
-const api: AxiosInstance = axios.create({
-    baseURL: API_URL,
-    withCredentials: true,
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL 
+
+export const publicApi: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-api.interceptors.request.use(
+export const privateApi: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  withCredentials: true,
+  timeout: 20000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+privateApi.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
         try {
-            const token = await getFromSecureStore("accessToken");
-            if (token) {
+            const token = await TokenStorage.getToken();
+            if (token && config.headers) {
                 config.headers.set("Cookie", `accessToken=${token}`);
                 // config.headers.set('Authorization', `Bearer ${token}`);
             }
@@ -27,22 +40,35 @@ api.interceptors.request.use(
     }
 );
 
-// Thêm interceptor để xử lý response và refresh token nếu cần
-api.interceptors.response.use(
-    (response) => {
-        return response;
-    },
-    async (error) => {
-        if (error.response && error.response.status === 401) {
-            try {
-                await removeFromSecureStore("accessToken");
-                await removeFromSecureStore("user");
-            } catch (logoutError) {
-                console.error("Error during logout:", logoutError);
-            }
-        }
-        return Promise.reject(error);
+privateApi.interceptors.response.use(
+  (response: AxiosResponse): AxiosResponse => response,
+  async (error: AxiosError): Promise<ApiError> => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      await TokenStorage.removeToken();
+      const apiError: ApiError = {
+        message: (error.response.data as any)?.message || 'Unauthorized',
+        statusCode: 401,
+        isTokenExpired: true
+      };
+      return Promise.reject(apiError);
     }
+    
+    const apiError: ApiError = {
+      message: (error.response?.data as any)?.message || error.message || 'Network error',
+      statusCode: error.response?.status || 500
+    };
+    return Promise.reject(apiError);
+  }
 );
 
-export { api };
+publicApi.interceptors.response.use(
+  (response: AxiosResponse): AxiosResponse => response,
+  (error: AxiosError<any>): Promise<ApiError> => {
+    const apiError: ApiError = {
+      message: (error.response?.data as any)?.message || error.message || 'Network error',
+      statusCode: error.response?.status || 500
+    };
+    return Promise.reject(apiError);
+  }
+);

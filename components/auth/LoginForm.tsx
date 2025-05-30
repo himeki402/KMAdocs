@@ -18,22 +18,24 @@ import {
 export const LoginForm: React.FC = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const { login, isLoading, errors, clearErrors } = useAuth();
+    const [errors, setErrors] = useState<{
+        username?: string;
+        password?: string;
+        form?: string;
+    }>({});
+    const { login, isLoading } = useAuth();
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const router = useRouter();
 
-    useEffect(() => {
-        return () => {
-            clearErrors();
-        };
-    }, []);
-
     const handleSubmit = async () => {
-        const result = await login(username, password);
+        setErrors({});
+        const result = await login({ username, password });
         if (result.success) {
             // Reset form if needed
             setUsername("");
             setPassword("");
+        } else {
+            setErrors(result.errors);
         }
     };
 

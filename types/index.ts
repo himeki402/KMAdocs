@@ -1,8 +1,4 @@
-export interface User {
-  id: string;
-  email: string;
-  [key: string]: any;
-}
+
 
 export interface ApiResponse<T> {
   success: boolean;

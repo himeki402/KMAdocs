@@ -1,14 +1,16 @@
-import { api } from "@/config/api";
-import { AxiosRequestConfig, AxiosResponse } from "axios";
-import { ApiResponse, User } from "../types";
+import { AxiosResponse } from "axios";
+import { ApiResponse } from "../types";
 import { removeFromSecureStore, saveToSecureStore } from "../utils/secureStore";
+import { LoginResponse, User } from "@/types/auth";
+import { privateApi, publicApi } from "@/config/api";
+import { TokenStorage } from "@/utils/tokenStorage";
 
 export const register = async (
     name: string,
     username: string,
     password: string
 ): Promise<ApiResponse<User>> => {
-    const response: AxiosResponse<ApiResponse<User>> = await api.post(
+    const response: AxiosResponse<ApiResponse<User>> = await publicApi.post(
         "/auth/register",
         { name, username, password }
     );
@@ -18,8 +20,8 @@ export const register = async (
 export const login = async (
     username: string,
     password: string
-): Promise<ApiResponse<User>> => {
-    const response: AxiosResponse<ApiResponse<User>> = await api.post(
+): Promise<LoginResponse> => {
+    const response: AxiosResponse<LoginResponse> = await publicApi.post(
         "/auth/login",
         { username, password }
     );
@@ -33,7 +35,7 @@ export const login = async (
     }
 
     if (token) {
-        await saveToSecureStore("accessToken", token);
+        await TokenStorage.saveToken(token);
     }
 
     return response.data;
@@ -41,18 +43,17 @@ export const login = async (
 
 export const logout = async (): Promise<void> => {
     try {
-        await api.post("/auth/logout");
+        await privateApi.post("/auth/logout");
     } catch (error) {
         console.error("Logout error:", error);
     } finally {
-        await removeFromSecureStore("accessToken");
-        await removeFromSecureStore("user");
+        await TokenStorage.removeToken();
     }
 };
 
 export const getUser = async (): Promise<ApiResponse<User>> => {
     try {
-        const response = await api.get("/auth/me");
+        const response = await privateApi.get("/auth/me");
         if (response.data && response.data.data) {
             await saveToSecureStore("user", JSON.stringify(response.data.data));
         }
@@ -62,13 +63,3 @@ export const getUser = async (): Promise<ApiResponse<User>> => {
         throw new Error("Không thể lấy thông tin người dùng");
     }
 };
-
-export const makeAuthenticatedRequest = async (
-    endpoint: string,
-    options: AxiosRequestConfig = {}
-): Promise<any> => {
-    const response: AxiosResponse = await api.get(endpoint, options);
-    return response.data;
-};
-
-export { api };

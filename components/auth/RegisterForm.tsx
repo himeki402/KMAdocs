@@ -14,25 +14,28 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { set } from "zod/v4";
 
 export const RegisterForm: React.FC = () => {
     const [name, setName] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const { register, isLoading, errors, clearErrors } = useAuth();
+    const [errors, setErrors] = useState<{
+        name?: string;
+        username?: string;
+        password?: string;
+        confirmPassword?: string;
+        form?: string;
+    }>({});
+    const { register, isLoading } = useAuth();
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [showConfirmPassword, setShowConfirmPassword] =
         useState<boolean>(false);
     const router = useRouter();
 
-    useEffect(() => {
-        return () => {
-            clearErrors();
-        };
-    }, []);
-
     const handleSubmit = async () => {
+        setErrors({});
         const result = await register(
             name,
             username,
@@ -44,6 +47,8 @@ export const RegisterForm: React.FC = () => {
             setUsername("");
             setPassword("");
             setConfirmPassword("");
+        } else {
+            setErrors(result.errors);
         }
     };
 

@@ -1,4 +1,3 @@
-import { api } from "@/config/api";
 import { useAuth } from "@/context/authContext";
 import { Text, View } from "react-native";
 

@@ -1,17 +1,38 @@
 import { useAuth } from "@/context/authContext";
+import { UserService } from "@/services/userService";
+import { UserProfile } from "@/types/user";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
+import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
+    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
-    ScrollView,
 } from "react-native";
 
 const ProfileScreen = () => {
-    const { user, isAuthenticated, isLoading, logout } = useAuth();
+    const { isAuthenticated, isLoading, logout } = useAuth();
+
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+    useEffect(() => {
+        const fetUserProfile = async () => {
+            if (isAuthenticated) {
+                try {
+                    const response = await UserService.getUserProfile();
+                    setUserProfile(response);
+                } catch (error) {
+                    console.error("Error fetching user profile:", error);
+                }
+            }
+        };
+        fetUserProfile();
+    }, [isAuthenticated]);
+
+    const user = userProfile;
 
     if (isLoading) {
         return (
@@ -38,7 +59,7 @@ const ProfileScreen = () => {
     }
 
     return (
-        <ScrollView 
+        <ScrollView
             style={styles.container}
             contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={false}
@@ -80,16 +101,21 @@ const ProfileScreen = () => {
                 <View style={styles.infoItem}>
                     <Ionicons name="at-outline" size={24} color="#333" />
                     <Text style={styles.infoText}>
-                        Tài liệu đã đăng tải: {user.documentsUploaded ? user.documentsUploaded : 0}
+                        Tài liệu đã đăng tải:{" "}
+                        {user.documentsUploaded ? user.documentsUploaded : 0}
                     </Text>
                 </View>
                 <View style={styles.infoItem}>
                     <Ionicons name="mail-outline" size={24} color="#333" />
-                    <Text style={styles.infoText}>Email: {user.email ? user.email : "Chưa có"}</Text>
+                    <Text style={styles.infoText}>
+                        Email: {user.email ? user.email : "Chưa có"}
+                    </Text>
                 </View>
                 <View style={styles.infoItem}>
                     <Ionicons name="call-outline" size={24} color="#333" />
-                    <Text style={styles.infoText}>Phone: {user.phone ? user.phone : "Chưa có"}</Text>
+                    <Text style={styles.infoText}>
+                        Phone: {user.phone ? user.phone : "Chưa có"}
+                    </Text>
                 </View>
             </View>
 

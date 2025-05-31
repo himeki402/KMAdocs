@@ -3,6 +3,8 @@ import { Document } from "@/types/document";
 import { StyleSheet, View, ScrollView } from "react-native";
 import { useState } from "react";
 import DocumentSection from "@/components/document/DocumentSection";
+import HeroBanner from "@/components/document/HeroBanner";
+import { router } from "expo-router";
 
 const HomeScreen = () => {
     const [categories] = useState([
@@ -13,16 +15,33 @@ const HomeScreen = () => {
     ]);
 
     const handleDocumentPress = (document: Document) => {
-        console.log("Document pressed:", document);
-        // Xử lý khi người dùng nhấn vào tài liệu
+        router.push({
+            pathname: "/document/[id]",
+            params: { id: document.id }
+        });
     };
 
     const handleMorePress = (category: any) => {
-        console.log("More pressed for category:", category);
+        router.push({
+            pathname: "/category/[slug]",
+            params: { slug: category.slug, name: category.name }
+        });
+    };
+
+    const handleSearchPress = () => {
+        router.push("/explore")
+    };
+
+    const handleManagePress = () => {
+        router.push("/library")
     };
 
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+            <HeroBanner 
+                onSearchPress={handleSearchPress}
+                onManagePress={handleManagePress}
+            />
             {categories.map((category) => (
                 <DocumentSection
                     key={category.id}

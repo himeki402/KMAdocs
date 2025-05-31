@@ -1,5 +1,5 @@
 import { publicApi } from "@/config/api";
-import { AccessType, GetDocumentsResponse } from "@/types/document";
+import { AccessType, Document, GetDocumentsResponse } from "@/types/document";
 
 export interface DocumentQueryParams {
     page?: number;
@@ -66,6 +66,25 @@ export const DocumentService = {
                     message:
                         error.response.data.message ||
                         "Không thể lấy danh sách tài liệu",
+                    errors: error.response.data.errors,
+                };
+            }
+            throw {
+                status: 500,
+                message: error.message || "Lỗi máy chủ nội bộ",
+            };
+        }
+    },
+    getDocumentById: async (id: string): Promise<Document> => {
+        try {
+            const response = await publicApi.get(`/documents/${id}`);
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                throw {
+                    status: error.response.status,
+                    message:
+                        error.response.data.message || "Không thể lấy tài liệu",
                     errors: error.response.data.errors,
                 };
             }

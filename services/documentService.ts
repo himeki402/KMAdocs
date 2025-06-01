@@ -1,5 +1,5 @@
 import { publicApi } from "@/config/api";
-import { AccessType, DocumentsResponse} from "@/types/document";
+import { AccessType, DocumentsResponse } from "@/types/document";
 
 export interface DocumentQueryParams {
     page?: number;
@@ -24,7 +24,6 @@ export interface SearchDocumentParams {
     categoryId?: string;
     tag?: string | "all";
 }
-
 
 export const DocumentService = {
     getPublicDocuments: async (
@@ -78,7 +77,7 @@ export const DocumentService = {
     getDocumentById: async (id: string): Promise<DocumentsResponse> => {
         try {
             const response = await publicApi.get(`/documents/${id}`);
-            const documentData = response.data
+            const documentData = response.data;
             return documentData;
         } catch (error: any) {
             if (error.response) {
@@ -103,7 +102,8 @@ export const DocumentService = {
                 throw {
                     status: error.response.status,
                     message:
-                        error.response.data.message || "Không thể thích tài liệu",
+                        error.response.data.message ||
+                        "Không thể thích tài liệu",
                     errors: error.response.data.errors,
                 };
             }
@@ -123,6 +123,30 @@ export const DocumentService = {
                     message:
                         error.response.data.message ||
                         "Không thể không thích tài liệu",
+                    errors: error.response.data.errors,
+                };
+            }
+            throw {
+                status: 500,
+                message: error.message || "Lỗi máy chủ nội bộ",
+            };
+        }
+    },
+    getMyDocuments: async (
+        params: DocumentQueryParams = {}
+    ): Promise<DocumentsResponse> => {
+        try {
+            const response = await publicApi.get("/documents/my-documents", {
+                params,
+            });
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                throw {
+                    status: error.response.status,
+                    message:
+                        error.response.data.message ||
+                        "Không thể lấy tài liệu của tôi",
                     errors: error.response.data.errors,
                 };
             }

@@ -86,9 +86,10 @@ export default function MainLayout() {
                     tabBarLabel: "Thư viện",
                     tabBarIcon: ({ color, size }) => {
                         return (
-                            <Feather name="book" size={size} color={color} />
+                            <Feather name="book-open" size={size} color={color} />
                         );
                     },
+                    headerShown: false,
                 }}
             />
             <Tabs.Screen

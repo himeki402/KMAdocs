@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import Feather from "@expo/vector-icons/Feather";
+import { BlurView } from "expo-blur";
 import { Tabs } from "expo-router";
 import { Text, View } from "react-native";
 
@@ -56,6 +57,15 @@ export default function MainLayout() {
                                 KMA Document
                             </Text>
                         </View>
+                    ),
+                    headerTransparent: true,
+                    headerBackground: () => (
+                        <BlurView
+                            experimentalBlurMethod="dimezisBlurView"
+                            intensity={70}
+                            tint="systemThickMaterialDark"
+                            style={{ flex: 1 }}
+                        />
                     ),
                 }}
             />

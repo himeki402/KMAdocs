@@ -65,9 +65,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     const handleLogin = async (
         credentials: LoginCredentials
     ): Promise<AuthResult> => {
-        // Validate input
+        setIsLoading(true);
         const validation = validateLogin(credentials);
         if (!validation.success) {
+            setIsLoading(false);
             return { success: false, errors: validation.errors };
         }
 

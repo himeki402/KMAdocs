@@ -6,6 +6,7 @@ import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
+    Image,
     ScrollView,
     StyleSheet,
     Text,
@@ -23,7 +24,7 @@ const ProfileScreen = () => {
             if (isAuthenticated) {
                 try {
                     const response = await UserService.getUserProfile();
-                    setUserProfile(response);
+                    setUserProfile(response.data);
                 } catch (error) {
                     console.error("Error fetching user profile:", error);
                 }
@@ -66,13 +67,20 @@ const ProfileScreen = () => {
         >
             <View style={styles.header}>
                 <View style={styles.avatarContainer}>
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>
-                            {user.name
-                                ? user.name.charAt(0).toUpperCase()
-                                : "U"}
-                        </Text>
-                    </View>
+                    {user.avatar ? (
+                        <Image
+                            source={{ uri: user.avatar }}
+                            style={styles.avatarImage}
+                        />
+                    ) : (
+                        <View style={styles.avatar}>
+                            <Text style={styles.avatarText}>
+                                {user.name
+                                    ? user.name.charAt(0).toUpperCase()
+                                    : "U"}
+                            </Text>
+                        </View>
+                    )}
                 </View>
                 <Text style={styles.userName}>{user.name}</Text>
                 <Text style={styles.userUsername}>@{user.username}</Text>
@@ -166,6 +174,11 @@ const styles = StyleSheet.create({
         backgroundColor: "#0A84FF",
         justifyContent: "center",
         alignItems: "center",
+    },
+    avatarImage: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
     },
     avatarText: {
         fontSize: 32,

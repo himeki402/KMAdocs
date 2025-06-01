@@ -1,15 +1,15 @@
 import { privateApi } from "@/config/api";
-import { UserProfile } from "@/types/user";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import { UserResponse } from "@/types/user";
 
 export const UserService = {
-    getUserProfile: async (): Promise<UserProfile> => {
+    getUserProfile: async (): Promise<UserResponse> => {
         try {
             const response = await privateApi.get("/auth/me");
-            return response.data;
+            const user = response.data;
+            return user;
         } catch (error) {
             console.error("Error fetching user profile:", error);
             throw error;
         }
-    }
-}
+    },
+};

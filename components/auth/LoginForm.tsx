@@ -2,7 +2,7 @@ import { useAuth } from "@/context/authContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     KeyboardAvoidingView,
     Platform,
@@ -133,6 +133,10 @@ export const LoginForm: React.FC = () => {
                                 </Text>
                             )}
                         </View>
+
+                        {errors.form && (
+                            <Text style={styles.errorText}>{errors.form}</Text>
+                        )}
 
                         <TouchableOpacity
                             style={[

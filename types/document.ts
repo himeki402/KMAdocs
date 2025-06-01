@@ -19,6 +19,7 @@ export type Document = {
     created_at: string;
     updated_at: string;
     likeCount: number;
+    dislikeCount: number;
     ratingCount: number;
     view: number;
     rating: number;
@@ -40,7 +41,7 @@ export type Document = {
     version?: string;
 };
 
-export interface GetDocumentsResponse {
+export interface DocumentsResponse {
     data: Document[];
     meta: {
         total: number;

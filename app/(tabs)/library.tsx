@@ -2,11 +2,11 @@ import { useAuth } from "@/context/authContext";
 import { Text, View } from "react-native";
 
 const LibraryScreen = () => {
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     return (
         <View>
             <Text>Thư viện</Text>
-            {user && (
+            {isAuthenticated && user && (
                 <View>
                     <Text>{user.name}</Text>
                     <Text>{user.email}</Text>

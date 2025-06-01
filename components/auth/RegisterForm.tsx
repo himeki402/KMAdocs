@@ -2,7 +2,7 @@ import { useAuth } from "@/context/authContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     KeyboardAvoidingView,
     Platform,
@@ -14,7 +14,6 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { set } from "zod/v4";
 
 export const RegisterForm: React.FC = () => {
     const [name, setName] = useState("");
@@ -196,6 +195,10 @@ export const RegisterForm: React.FC = () => {
                                 </Text>
                             )}
                         </View>
+
+                        {errors.form && (
+                            <Text style={styles.errorText}>{errors.form}</Text>
+                        )}
 
                         <TouchableOpacity
                             style={[

@@ -1,5 +1,9 @@
 import { User } from "./auth";
 
+export interface UserResponse {
+    data : UserProfile;
+}
+
 export interface UserProfile extends User {
     avatar: string;
     bio: string;

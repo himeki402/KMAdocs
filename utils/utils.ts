@@ -23,9 +23,12 @@ export function formatDateToFullOptions(isoDateString: string): string {
     return `${day} ${month} ${year}`;
 }
 
-export function convertBytesToMB(bytes: number): number {
+export function convertBytesToMB(bytes: number): string {
+  if (!bytes || typeof bytes !== 'number' || isNaN(bytes)) {
+    return "N/A";
+  }
   const mb = bytes / (1024 * 1024);
-  return Number(mb.toFixed(2));
+  return Number(mb.toFixed(2)).toString();
 }
 
 export function formatDate(isoDateString: string): string {

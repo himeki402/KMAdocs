@@ -1,4 +1,5 @@
 // DocumentCard.tsx
+import { PLACEHOLDER_DOCUMENT_THUMBNAIL } from "@/constants/Placeholder";
 import { Document } from "@/types/document";
 import { convertBytesToMB } from "@/utils/utils";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,7 +12,7 @@ import {
     View,
 } from "react-native";
 
-const documentDefailtThumbnail = require("@/assets/images/default-document.png");
+const documentDefaultThumbnail = require("@/assets/images/default-document.png");
 const { width } = Dimensions.get("window");
 
 interface DocumentCardProps {
@@ -55,9 +56,9 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ document, onPress }) => {
             <View style={styles.thumbnailContainer}>
                 {document.thumbnailUrl ? (
                     <Image
-                        source={{ uri: document.thumbnailUrl }}
+                        source={{ uri: document.thumbnailUrl || PLACEHOLDER_DOCUMENT_THUMBNAIL }}
                         style={styles.thumbnail}
-                        placeholder={documentDefailtThumbnail}
+                        placeholder={PLACEHOLDER_DOCUMENT_THUMBNAIL}
                     />
                 ) : (
                     <View style={[styles.thumbnail, styles.defaultThumbnail]}>
@@ -117,30 +118,18 @@ const DocumentCard: React.FC<DocumentCardProps> = ({ document, onPress }) => {
                             color="#6c757d"
                         />
                         <Text style={styles.statText}>
-                            {document.likeCount?.toString() || "0"}
+                            {String(document.likeCount || 0)}
                         </Text>
                     </View>
-                    {document.rating && document.rating > 0 && (
-                        <View style={styles.statItem}>
-                            <Ionicons name="star" size={12} color="#ffc107" />
-                            <Text style={styles.statText}>
-                                {document.rating?.toFixed(1) || "0.0"}
-                            </Text>
-                        </View>
-                    )}
                 </View>
-
                 <View style={styles.authorContainer}>
                     <Text style={styles.uploadedBy}>TẢI LÊN BỞI</Text>
                     <View style={styles.authorRow}>
                         <View style={styles.authorAvatar}>
                             <Text style={styles.authorInitial}>
-                                {typeof document.createdByName === "string" &&
-                                document.createdByName.length > 0
-                                    ? document.createdByName
-                                          .charAt(0)
-                                          .toUpperCase()
-                                    : "U"}
+                                {(document.createdByName || "U")
+                                    .charAt(0)
+                                    .toUpperCase()}
                             </Text>
                         </View>
                         <Text style={styles.authorName} numberOfLines={1}>

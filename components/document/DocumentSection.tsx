@@ -119,7 +119,7 @@ const DocumentSection: React.FC<DocumentSectionProps> = ({
 
 const styles = StyleSheet.create({
     section: { 
-        marginBottom: 24,
+        marginBottom: 20,
         backgroundColor: "transparent",
     },
     sectionHeader: {
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 20,
         marginBottom: 16,
-        marginTop: 24,
+        marginTop: 14,
     },
     sectionTitle: { 
         color: "#1a1a1a",

@@ -1,12 +1,15 @@
-// HomeScreen.tsx
 import { Document } from "@/types/document";
 import { StyleSheet, View, ScrollView } from "react-native";
 import { useState } from "react";
 import DocumentSection from "@/components/document/DocumentSection";
 import HeroBanner from "@/components/document/HeroBanner";
 import { router } from "expo-router";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const HomeScreen = () => {
+    const headerHeight = useHeaderHeight();
+    const bottomTabBarHeight = useBottomTabBarHeight();
     const [categories] = useState([
         { id: "1", name: "Sách Giáo Trình", slug: "Sach-giao-trinh" },
         { id: "2", name: "Tài liệu tham khảo", slug: "Tai-lieu-tham-khao" },
@@ -37,8 +40,8 @@ const HomeScreen = () => {
     };
 
     return (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-            <HeroBanner 
+        <ScrollView style={[styles.container, { paddingTop: headerHeight }]} contentContainerStyle={{ paddingBottom: bottomTabBarHeight + 20 }} showsVerticalScrollIndicator={false}>
+            <HeroBanner
                 onSearchPress={handleSearchPress}
                 onManagePress={handleManagePress}
             />

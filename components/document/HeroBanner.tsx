@@ -37,7 +37,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
                         <Text style={styles.titleText}>Tài Liệu KMA</Text>
                         <Text style={styles.subtitleText}>
                             Khám phá hàng ngàn tài liệu học tập chất lượng cao
-                            từ mọi lĩnh vực
+                            từ mọi lĩnh vực !
                         </Text>
                     </View>
 

@@ -1,5 +1,5 @@
-import { publicApi } from "@/config/api";
-import { AccessType, DocumentsResponse } from "@/types/document";
+import { privateApi, publicApi } from "@/config/api";
+import { AccessType, DocumentsResponse, UpdateDocumentPayload } from "@/types/document";
 
 export interface DocumentQueryParams {
     page?: number;
@@ -147,6 +147,51 @@ export const DocumentService = {
                     message:
                         error.response.data.message ||
                         "Không thể lấy tài liệu của tôi",
+                    errors: error.response.data.errors,
+                };
+            }
+            throw {
+                status: 500,
+                message: error.message || "Lỗi máy chủ nội bộ",
+            };
+        }
+    },
+    getDocumentbyId: async (
+        id: string
+    ): Promise<DocumentsResponse> => {
+        try {
+            const response = await publicApi.get(`/documents/${id}`);
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                throw {
+                    status: error.response.status,
+                    message:
+                        error.response.data.message ||
+                        "Không thể lấy tài liệu",
+                    errors: error.response.data.errors,
+                };
+            }
+            throw {
+                status: 500,
+                message: error.message || "Lỗi máy chủ nội bộ",
+            };
+        }
+    },
+    updateDocument: async (
+        id: string,
+        payload: UpdateDocumentPayload
+    ): Promise<Document> => {
+        try {
+            const response = await privateApi.put(`/documents/${id}`, payload);
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                throw {
+                    status: error.response.status,
+                    message:
+                        error.response.data.message ||
+                        "Không thể cập nhật tài liệu",
                     errors: error.response.data.errors,
                 };
             }

@@ -1,6 +1,5 @@
 import { Tag } from "./tag";
 
-
 export type Document = {
     id: string;
     title: string;
@@ -93,3 +92,4 @@ export interface UploadDocumentFormData {
     selectedTags: string[];
     groupId?: string;
 }
+

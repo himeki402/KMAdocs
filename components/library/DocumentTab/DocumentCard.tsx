@@ -158,20 +158,20 @@ const DocumentCard = ({
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.actionButton}
-                        onPress={() => onShowMenu(document)}
+                        onPress={() => onShare(document)}
                     >
                         <Ionicons
-                            name="list-outline"
+                            name="share-outline"
                             size={24}
                             color="#007bff"
                         />
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.actionButton}
-                        onPress={() => onShare(document)}
+                        onPress={() => onShowMenu(document)}
                     >
                         <Ionicons
-                            name="share-outline"
+                            name="list-outline"
                             size={24}
                             color="#007bff"
                         />

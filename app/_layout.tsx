@@ -7,9 +7,11 @@ import {
     Inter_700Bold,
     useFonts,
 } from "@expo-google-fonts/inter";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Prevent auto-hiding the splash screen
 SplashScreen.preventAutoHideAsync();
@@ -48,15 +50,19 @@ export default function RootLayout() {
     }
 
     return (
-        <AuthProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen
-                    name="+not-found"
-                    options={{ title: "Not Found" }}
-                />
-            </Stack>
-        </AuthProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <AuthProvider>
+                <ActionSheetProvider>
+                    <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="(tabs)" />
+                        <Stack.Screen name="(auth)" />
+                        <Stack.Screen
+                            name="+not-found"
+                            options={{ title: "Not Found" }}
+                        />
+                    </Stack>
+                </ActionSheetProvider>
+            </AuthProvider>
+        </GestureHandlerRootView>
     );
 }

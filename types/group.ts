@@ -30,7 +30,6 @@ export interface Member {
 }
 export interface GroupResponse {
     data: Group[];
-    meta: { total: number; page: number; limit: number; totalPages: number };
 }
 
 export interface GroupQueryParams {

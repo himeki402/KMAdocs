@@ -3,6 +3,7 @@ import { Animated, StyleSheet } from "react-native";
 
 import EmptyState from "./EmptyState";
 import DocumentsTab from "./DocumentTab/DocumentTab";
+import GroupsTab from "./GroupTab/GroupTab";
 
 interface TabContentProps {
     activeTab: string;
@@ -40,18 +41,23 @@ const TabContent = ({ activeTab, opacityAnimation }: TabContentProps) => {
     };
 
     const renderContent = () => {
-        if (activeTab === "Tài liệu") {
-            return <DocumentsTab isActive={true} />;
+        switch (activeTab) {
+            case "Tài liệu":
+                return <DocumentsTab isActive={true} />;
+            
+            case "Nhóm":
+                return <GroupsTab isActive={true} />;
+            
+            default:
+                const content = getPlaceholderContent();
+                return (
+                    <EmptyState
+                        icon={content.icon}
+                        title={content.title}
+                        description={content.text}
+                    />
+                );
         }
-
-        const content = getPlaceholderContent();
-        return (
-            <EmptyState
-                icon={content.icon}
-                title={content.title}
-                description={content.text}
-            />
-        );
     };
 
     return (

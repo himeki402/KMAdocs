@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
     tabsContainer: {
         position: "relative",
         marginBottom: 16,
+        paddingHorizontal: 16,
     },
     tabsRow: {
         flexDirection: "row",
@@ -117,6 +118,7 @@ const styles = StyleSheet.create({
         right: 0,
         height: 2,
         backgroundColor: "#f0f0f0",
+        paddingHorizontal: 16,
     },
     animatedBorder: {
         height: 2,

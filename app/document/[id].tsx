@@ -104,7 +104,6 @@ export default function DocumentDetailScreen() {
             Alert.alert("Lỗi", "Không có đường dẫn tài liệu để sao chép");
             return;
         }
-
         try {
             await Clipboard.setStringAsync(document.fileUrl);
             Alert.alert("Thành công", "Đường dẫn tài liệu đã được sao chép vào clipboard!");

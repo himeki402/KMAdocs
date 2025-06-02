@@ -12,7 +12,6 @@ import {
     View,
 } from "react-native";
 
-const documentDefaultThumbnail = require("@/assets/images/default-document.png");
 const { width } = Dimensions.get("window");
 
 interface DocumentCardProps {

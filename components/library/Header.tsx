@@ -26,7 +26,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 12,
+        marginBottom: 6,
+        paddingHorizontal: 16,
+        paddingTop: 8,
     },
     headerTitle: {
         color: "#111",

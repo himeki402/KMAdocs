@@ -103,7 +103,7 @@ const ProfileScreen = () => {
                 <View style={styles.infoItem}>
                     <Ionicons name="at-outline" size={24} color="#333" />
                     <Text style={styles.infoText}>
-                        Trạng thái: {user.status}
+                        Trạng thái: {user.status==="PENDING" ? "Đang chờ duyệt" : user.status==="ACTIVE" ? "Đã duyệt" : "Bị từ chối"}
                     </Text>
                 </View>
                 <View style={styles.infoItem}>

@@ -1,11 +1,15 @@
 import { PLACEHOLDER_DOCUMENT_THUMBNAIL } from "@/constants/Placeholder";
+import { useAuth } from "@/context/authContext";
 import { DocumentService } from "@/services/documentService";
 import { Document } from "@/types/document";
 import { formatDateToFullOptions } from "@/utils/utils";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     Image,
     ScrollView,
@@ -13,17 +17,15 @@ import {
     Text,
     TouchableOpacity,
     View,
-    ActivityIndicator,
 } from "react-native";
-import { WebView } from 'react-native-webview';
-import * as Clipboard from 'expo-clipboard';
-import * as Linking from 'expo-linking';
+import { WebView } from "react-native-webview";
 
-const PDF_VIEWER_BASE_URL = 'https://mozilla.github.io/pdf.js/web/viewer.html';
+const PDF_VIEWER_BASE_URL = "https://mozilla.github.io/pdf.js/web/viewer.html";
 
 export default function DocumentDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const { isAuthenticated } = useAuth();
 
     const [document, setDocument] = useState<Document | null>(null);
     const [loading, setLoading] = useState(true);
@@ -45,21 +47,26 @@ export default function DocumentDetailScreen() {
             try {
                 setLoading(true);
                 setError(null);
-                
-                const response = await DocumentService.getDocumentById(id as string);
+
+                const response = await DocumentService.getDocumentById(
+                    id as string
+                );
                 const documents: Document[] = response.data;
-                const foundDocument = Array.isArray(documents) ? documents[0] : documents;
-                
+                const foundDocument = Array.isArray(documents)
+                    ? documents[0]
+                    : documents;
+
                 if (!foundDocument) {
                     setError("Không tìm thấy tài liệu");
                     return;
                 }
-                
+
                 setDocument(foundDocument);
             } catch (err) {
-                const errorMessage = err instanceof Error 
-                    ? err.message 
-                    : "Có lỗi xảy ra khi tải tài liệu";
+                const errorMessage =
+                    err instanceof Error
+                        ? err.message
+                        : "Có lỗi xảy ra khi tải tài liệu";
                 setError(errorMessage);
                 console.error("Error fetching document:", err);
             } finally {
@@ -75,19 +82,30 @@ export default function DocumentDetailScreen() {
             Alert.alert("Lỗi", "Không có đường dẫn tài liệu để tải xuống");
             return;
         }
+
+         if (!isAuthenticated) {
+            Alert.alert("Lỗi", "Vui lòng đăng nhập để tải tài liệu này.");
+            router.push("/(auth)/login");
+            return;
+        }
         try {
             await Linking.openURL(document.fileUrl);
         } catch (error) {
             console.error("Error opening URL for download:", error);
-            Alert.alert("Lỗi", "Không thể mở đường dẫn tải xuống. Vui lòng thử lại.");
+            Alert.alert(
+                "Lỗi",
+                "Không thể mở đường dẫn tải xuống. Vui lòng thử lại."
+            );
         }
     }, [document]);
 
     const handleSave = useCallback(() => {
-        setIsSaved(prev => !prev);
+        setIsSaved((prev) => !prev);
         Alert.alert(
-            "Lưu tài liệu", 
-            isSaved ? "Đã bỏ lưu tài liệu" : "Đã lưu tài liệu vào thư viện của bạn"
+            "Lưu tài liệu",
+            isSaved
+                ? "Đã bỏ lưu tài liệu"
+                : "Đã lưu tài liệu vào thư viện của bạn"
         );
         // TODO: Implement actual save functionality
     }, [isSaved]);
@@ -106,10 +124,16 @@ export default function DocumentDetailScreen() {
         }
         try {
             await Clipboard.setStringAsync(document.fileUrl);
-            Alert.alert("Thành công", "Đường dẫn tài liệu đã được sao chép vào clipboard!");
+            Alert.alert(
+                "Thành công",
+                "Đường dẫn tài liệu đã được sao chép vào clipboard!"
+            );
         } catch (error) {
             console.error("Error copying to clipboard:", error);
-            Alert.alert("Lỗi", "Không thể sao chép đường dẫn. Vui lòng thử lại.");
+            Alert.alert(
+                "Lỗi",
+                "Không thể sao chép đường dẫn. Vui lòng thử lại."
+            );
         }
     }, [document]);
 
@@ -125,36 +149,51 @@ export default function DocumentDetailScreen() {
     const handleLike = useCallback(async () => {
         if (!document?.id || isLiked) return;
 
+        if (!isAuthenticated) {
+            Alert.alert("Lỗi", "Vui lòng đăng nhập để đánh giá tài liệu này.");
+            return;
+        }
+
         try {
             await DocumentService.likeDocument(document.id);
-            setDocument(prev => prev ? {
-                ...prev,
-                likeCount: (prev.likeCount || 0) + 1,
-            } : prev);
+            setDocument((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          likeCount: (prev.likeCount || 0) + 1,
+                      }
+                    : prev
+            );
             setIsLiked(true);
             setIsDisliked(false);
             Alert.alert("Cảm ơn", "Bạn đã đánh giá tài liệu này là hữu ích");
         } catch (error) {
-            console.error("Error liking document:", error);
-            Alert.alert("Lỗi", "Không thể thích tài liệu này. Vui lòng thử lại.");
+            Alert.alert("Vui lòng đăng nhập để đánh giá tài liệu này.");
         }
     }, [document?.id, isLiked]);
 
     const handleDislike = useCallback(async () => {
         if (!document?.id || isDisliked) return;
+        if (!isAuthenticated) {
+            Alert.alert("Lỗi", "Vui lòng đăng nhập để đánh giá tài liệu này.");
+            return;
+        }
 
         try {
             await DocumentService.dislikeDocument(document.id);
-            setDocument(prev => prev ? {
-                ...prev,
-                dislikeCount: (prev.dislikeCount || 0) + 1,
-            } : prev);
+            setDocument((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          dislikeCount: (prev.dislikeCount || 0) + 1,
+                      }
+                    : prev
+            );
             setIsDisliked(true);
             setIsLiked(false);
             Alert.alert("Cảm ơn", "Cảm ơn bạn đã đánh giá");
         } catch (error) {
-            console.error("Error disliking document:", error);
-            Alert.alert("Lỗi", "Không thể gửi đánh giá. Vui lòng thử lại.");
+            Alert.alert("Lỗi", `Gặp lỗi ${error} khi đánh giá tài liệu này`);
         }
     }, [document?.id, isDisliked]);
 
@@ -173,11 +212,9 @@ export default function DocumentDetailScreen() {
 
     const handlePDFError = useCallback(() => {
         Alert.alert(
-            "Lỗi tải PDF", 
+            "Lỗi tải PDF",
             "Không thể tải file PDF. Vui lòng kiểm tra kết nối mạng và thử lại.",
-            [
-                { text: "Quay lại", onPress: handleClosePDF }
-            ]
+            [{ text: "Quay lại", onPress: handleClosePDF }]
         );
     }, [handleClosePDF]);
 
@@ -193,9 +230,16 @@ export default function DocumentDetailScreen() {
     if (error) {
         return (
             <View style={[styles.container, styles.centerContent]}>
-                <Ionicons name="alert-circle-outline" size={48} color="#e53e3e" />
+                <Ionicons
+                    name="alert-circle-outline"
+                    size={48}
+                    color="#e53e3e"
+                />
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={handleBackPress}>
+                <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={handleBackPress}
+                >
                     <Text style={styles.retryText}>Quay lại</Text>
                 </TouchableOpacity>
             </View>
@@ -208,7 +252,10 @@ export default function DocumentDetailScreen() {
             <View style={[styles.container, styles.centerContent]}>
                 <Ionicons name="document-outline" size={48} color="#6c757d" />
                 <Text style={styles.errorText}>Không tìm thấy tài liệu</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={handleBackPress}>
+                <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={handleBackPress}
+                >
                     <Text style={styles.retryText}>Quay lại</Text>
                 </TouchableOpacity>
             </View>
@@ -219,7 +266,7 @@ export default function DocumentDetailScreen() {
     if (showPDF) {
         return (
             <View style={styles.container}>
-                <PDFHeader 
+                <PDFHeader
                     title={document.title || "Tài liệu PDF"}
                     onBack={handleClosePDF}
                     onShare={handleShare}
@@ -234,7 +281,9 @@ export default function DocumentDetailScreen() {
                     renderLoading={() => (
                         <View style={styles.pdfLoadingContainer}>
                             <ActivityIndicator size="large" color="#007bff" />
-                            <Text style={styles.pdfLoadingText}>Đang tải PDF...</Text>
+                            <Text style={styles.pdfLoadingText}>
+                                Đang tải PDF...
+                            </Text>
                         </View>
                     )}
                     javaScriptEnabled={true}
@@ -248,21 +297,27 @@ export default function DocumentDetailScreen() {
     // Main document detail view
     return (
         <View style={styles.container}>
-            <DocumentHeader 
+            <DocumentHeader
                 title={document.title || "Tiêu đề tài liệu"}
                 onBack={handleBackPress}
                 onShare={handleShare}
             />
-            
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+
+            <ScrollView
+                style={styles.content}
+                showsVerticalScrollIndicator={false}
+            >
                 <DocumentPreview document={document} />
-                
-                <TouchableOpacity style={styles.readNowButton} onPress={handleReadNow}>
+
+                <TouchableOpacity
+                    style={styles.readNowButton}
+                    onPress={handleReadNow}
+                >
                     <Ionicons name="book-outline" size={20} color="#ffffff" />
                     <Text style={styles.readNowText}>Đọc ngay</Text>
                 </TouchableOpacity>
 
-                <ActionButtons 
+                <ActionButtons
                     onDownload={handleDownload}
                     onSave={handleSave}
                     onAddToList={handleAddToList}
@@ -270,12 +325,12 @@ export default function DocumentDetailScreen() {
                 />
 
                 <RatingsSection document={document} />
-                
+
                 <DocumentDetails document={document} />
-                
+
                 <DescriptionSection document={document} />
-                
-                <UserRatingSection 
+
+                <UserRatingSection
                     onLike={handleLike}
                     onDislike={handleDislike}
                     isLiked={isLiked}
@@ -286,7 +341,11 @@ export default function DocumentDetailScreen() {
     );
 }
 
-const DocumentHeader = ({ title, onBack, onShare }: {
+const DocumentHeader = ({
+    title,
+    onBack,
+    onShare,
+}: {
     title: string;
     onBack: () => void;
     onShare: () => void;
@@ -295,14 +354,20 @@ const DocumentHeader = ({ title, onBack, onShare }: {
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
             <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+            {title}
+        </Text>
         <TouchableOpacity style={styles.shareButton} onPress={onShare}>
             <Ionicons name="share-outline" size={24} color="#1a1a1a" />
         </TouchableOpacity>
     </View>
 );
 
-const PDFHeader = ({ title, onBack, onShare }: {
+const PDFHeader = ({
+    title,
+    onBack,
+    onShare,
+}: {
     title: string;
     onBack: () => void;
     onShare: () => void;
@@ -311,7 +376,9 @@ const PDFHeader = ({ title, onBack, onShare }: {
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
             <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
-        <Text style={styles.pdfHeaderTitle} numberOfLines={1}>{title}</Text>
+        <Text style={styles.pdfHeaderTitle} numberOfLines={1}>
+            {title}
+        </Text>
         <TouchableOpacity style={styles.shareButton} onPress={onShare}>
             <Ionicons name="share-outline" size={24} color="#1a1a1a" />
         </TouchableOpacity>
@@ -323,7 +390,8 @@ const DocumentPreview = ({ document }: { document: Document }) => (
         <View style={styles.thumbnailContainer}>
             <Image
                 source={{
-                    uri: document.thumbnailUrl || PLACEHOLDER_DOCUMENT_THUMBNAIL,
+                    uri:
+                        document.thumbnailUrl || PLACEHOLDER_DOCUMENT_THUMBNAIL,
                 }}
                 style={styles.thumbnail}
                 resizeMode="cover"
@@ -346,7 +414,12 @@ const DocumentPreview = ({ document }: { document: Document }) => (
     </View>
 );
 
-const ActionButtons = ({ onDownload, onSave, onAddToList, isSaved }: {
+const ActionButtons = ({
+    onDownload,
+    onSave,
+    onAddToList,
+    isSaved,
+}: {
     onDownload: () => void;
     onSave: () => void;
     onAddToList: () => void;
@@ -357,22 +430,22 @@ const ActionButtons = ({ onDownload, onSave, onAddToList, isSaved }: {
             <Ionicons name="download-outline" size={24} color="#007bff" />
             <Text style={styles.actionButtonText}>Tải về</Text>
         </TouchableOpacity>
-        
+
         <View style={styles.separator} />
-        
+
         <TouchableOpacity style={styles.actionButton} onPress={onSave}>
-            <Ionicons 
-                name={isSaved ? "bookmark" : "bookmark-outline"} 
-                size={24} 
-                color="#007bff" 
+            <Ionicons
+                name={isSaved ? "bookmark" : "bookmark-outline"}
+                size={24}
+                color="#007bff"
             />
             <Text style={styles.actionButtonText}>
                 {isSaved ? "Đã lưu" : "Lưu"}
             </Text>
         </TouchableOpacity>
-        
+
         <View style={styles.separator} />
-        
+
         <TouchableOpacity style={styles.actionButton} onPress={onAddToList}>
             <Ionicons name="list-outline" size={24} color="#007bff" />
             <Text style={styles.actionButtonText}>Thêm vào danh sách</Text>
@@ -390,7 +463,9 @@ const RatingsSection = ({ document }: { document: Document }) => (
             </View>
             <View style={styles.ratingItem}>
                 <Ionicons name="thumbs-down" size={16} color="#f44336" />
-                <Text style={styles.ratingText}>{document.dislikeCount || 0}</Text>
+                <Text style={styles.ratingText}>
+                    {document.dislikeCount || 0}
+                </Text>
             </View>
             <View style={styles.ratingItem}>
                 <Ionicons name="eye-outline" size={16} color="#6c757d" />
@@ -403,28 +478,28 @@ const RatingsSection = ({ document }: { document: Document }) => (
 const DocumentDetails = ({ document }: { document: Document }) => (
     <View style={styles.detailsSection}>
         <Text style={styles.sectionTitle}>THÔNG TIN CHI TIẾT</Text>
-        
+
         <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>SỐ TRANG</Text>
             <Text style={styles.detailValue}>
                 {document.pageCount || "N/A"} trang
             </Text>
         </View>
-        
+
         <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>NGÔN NGỮ</Text>
             <Text style={styles.detailValue}>
                 {document.language || "Tiếng Việt"}
             </Text>
         </View>
-        
+
         <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>NGÀY ĐĂNG TẢI</Text>
             <Text style={styles.detailValue}>
                 {formatDateToFullOptions(document.created_at) || "N/A"}
             </Text>
         </View>
-        
+
         <View style={[styles.detailRow, { borderBottomWidth: 0 }]}>
             <Text style={styles.detailLabel}>DANH MỤC</Text>
             <Text style={styles.detailValue}>
@@ -443,7 +518,12 @@ const DescriptionSection = ({ document }: { document: Document }) => (
     </View>
 );
 
-const UserRatingSection = ({ onLike, onDislike, isLiked, isDisliked }: {
+const UserRatingSection = ({
+    onLike,
+    onDislike,
+    isLiked,
+    isDisliked,
+}: {
     onLike: () => void;
     onDislike: () => void;
     isLiked: boolean;
@@ -455,44 +535,45 @@ const UserRatingSection = ({ onLike, onDislike, isLiked, isDisliked }: {
             Tài liệu này có hữu ích với bạn không?
         </Text>
         <View style={styles.userRatingButtons}>
-            <TouchableOpacity 
-                style={[
-                    styles.userRatingButton,
-                    isLiked && styles.likedButton
-                ]} 
+            <TouchableOpacity
+                style={[styles.userRatingButton, isLiked && styles.likedButton]}
                 onPress={onLike}
                 disabled={isLiked}
             >
-                <Ionicons 
-                    name={isLiked ? "thumbs-up" : "thumbs-up-outline"} 
-                    size={20} 
-                    color={isLiked ? "#ffffff" : "#4CAF50"} 
+                <Ionicons
+                    name={isLiked ? "thumbs-up" : "thumbs-up-outline"}
+                    size={20}
+                    color={isLiked ? "#ffffff" : "#4CAF50"}
                 />
-                <Text style={[
-                    styles.userRatingButtonText,
-                    isLiked && styles.likedButtonText
-                ]}>
+                <Text
+                    style={[
+                        styles.userRatingButtonText,
+                        isLiked && styles.likedButtonText,
+                    ]}
+                >
                     Hữu ích
                 </Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
                 style={[
                     styles.userRatingButton,
-                    isDisliked && styles.dislikedButton
-                ]} 
+                    isDisliked && styles.dislikedButton,
+                ]}
                 onPress={onDislike}
                 disabled={isDisliked}
             >
-                <Ionicons 
-                    name={isDisliked ? "thumbs-down" : "thumbs-down-outline"} 
-                    size={20} 
-                    color={isDisliked ? "#ffffff" : "#f44336"} 
+                <Ionicons
+                    name={isDisliked ? "thumbs-down" : "thumbs-down-outline"}
+                    size={20}
+                    color={isDisliked ? "#ffffff" : "#f44336"}
                 />
-                <Text style={[
-                    styles.userRatingButtonText,
-                    isDisliked && styles.dislikedButtonText
-                ]}>
+                <Text
+                    style={[
+                        styles.userRatingButtonText,
+                        isDisliked && styles.dislikedButtonText,
+                    ]}
+                >
                     Không hữu ích
                 </Text>
             </TouchableOpacity>

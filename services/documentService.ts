@@ -201,4 +201,28 @@ export const DocumentService = {
             };
         }
     },
+    FTSDocument: async (
+        params: DocumentQueryParams = {}
+    ): Promise<DocumentsResponse> => {
+        try {
+            const response = await privateApi.get("/documents/search", {
+                params,
+            });
+            return response.data.data;
+        } catch (error: any) {
+            if (error.response) {
+                throw {
+                    status: error.response.status,
+                    message:
+                        error.response.data.message ||
+                        "Không thể lấy danh sách tài liệu",
+                    errors: error.response.data.errors,
+                };
+            }
+            throw {
+                status: 500,
+                message: error.message || "Lỗi máy chủ nội bộ",
+            };
+        }
+    },
 };

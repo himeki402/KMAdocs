@@ -118,7 +118,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             await register(name, username, password);
             setIsLoading(false);
             Alert.alert("Success", "Đăng ký thành công! Vui lòng đăng nhập.");
-            router.push("/login");
             return { success: true };
         } catch (error: any) {
             const errorMessage = error.message || "Đăng ký thất bại";

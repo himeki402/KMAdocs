@@ -10,7 +10,6 @@ const LibraryScreen = () => {
     const opacityAnimation = useRef(new Animated.Value(1)).current;
 
     const handleTabPress = (tab: string) => {
-        // Animate opacity for smoother transition
         Animated.sequence([
             Animated.timing(opacityAnimation, {
                 toValue: 0.7,

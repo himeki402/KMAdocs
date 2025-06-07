@@ -1,5 +1,4 @@
 import { PLACEHOLDER_DOCUMENT_THUMBNAIL } from "@/constants/Placeholder";
-import { useAuth } from "@/context/authContext";
 import { GroupService } from "@/services/groupService";
 import { Document, Group } from "@/types/group";
 import { Ionicons } from "@expo/vector-icons";
@@ -48,8 +47,6 @@ export default function GroupDetailScreen() {
                 setLoading(true);
                 setError(null);
 
-                // Giả định API endpoint để lấy chi tiết nhóm
-                // Cần thêm API endpoint này vào GroupService
                 const response = await GroupService.getGroupById(id as string);
                 setGroup(response.data);
             } catch (error: any) {

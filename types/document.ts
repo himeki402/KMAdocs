@@ -70,6 +70,16 @@ export interface UpdateDocumentPayload {
 
 export type AccessType = "PRIVATE" | "PUBLIC" | "GROUP";
 
+export interface UploadDocumentFormData {
+    file: File | null;
+    title: string;
+    description: string;
+    accessType: AccessType;
+    categoryId: string;
+    selectedTags: string[];
+    groupId?: string;
+}
+
 export type DocumentStatsResponseDto = {
     data: DocumentStats;
     message: string;
@@ -82,14 +92,14 @@ export type DocumentStats = {
     newDocumentsLastMonth: number;
     growthPercentage: number;
     growthCount: number;
+    newSharedDocumentsThisWeek: number;
+    sharedDocuments: number;
+    recentDocuments: number;
+    documentsByDay: DocumentsByDay[];
 };
-export interface UploadDocumentFormData {
-    file: File | null;
-    title: string;
-    description: string;
-    accessType: AccessType;
-    categoryId: string;
-    selectedTags: string[];
-    groupId?: string;
+
+export interface DocumentsByDay {
+  date: string;
+  count: number;
 }
 

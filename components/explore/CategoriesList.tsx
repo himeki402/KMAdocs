@@ -11,7 +11,6 @@ const CategoryList = () => {
             try {
                 const Response = await CategoryService.getCategories();
                 setCategories(Response.data);
-                console.log("Categories fetched successfully:", Response.data);
             } catch (error) {
                 console.error("Error fetching categories:", error);
             }

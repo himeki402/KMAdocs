@@ -78,6 +78,8 @@ export default function MainLayout() {
                             <Feather name="search" size={size} color={color} />
                         );
                     },
+                    headerShown: true,
+                    headerTitle: "Khám phá tài liệu",
                 }}
             />
             <Tabs.Screen
@@ -88,8 +90,8 @@ export default function MainLayout() {
                         return (
                             <Feather name="book-open" size={size} color={color} />
                         );
-                    },
-                    headerShown: false,
+                    }, 
+                    headerShown: false,               
                 }}
             />
             <Tabs.Screen
@@ -101,6 +103,7 @@ export default function MainLayout() {
                             <Feather name="user" size={size} color={color} />
                         );
                     },
+                    headerTitle: "Tài khoản"
                 }}
             />
         </Tabs>

@@ -1,5 +1,6 @@
+import UploadTab from "@/components/library/UploadTab/UploadTab";
 import { privateApi, publicApi } from "@/config/api";
-import { AccessType, DocumentsResponse, UpdateDocumentPayload } from "@/types/document";
+import { AccessType, Document, DocumentsResponse, DocumentStatsResponseDto, UpdateDocumentPayload } from "@/types/document";
 
 export interface DocumentQueryParams {
     page?: number;
@@ -216,6 +217,53 @@ export const DocumentService = {
                     message:
                         error.response.data.message ||
                         "Không thể lấy danh sách tài liệu",
+                    errors: error.response.data.errors,
+                };
+            }
+            throw {
+                status: 500,
+                message: error.message || "Lỗi máy chủ nội bộ",
+            };
+        }
+    },
+    getStats: async (): Promise<DocumentStatsResponseDto> => {
+        try {
+            const response = await privateApi.get("/documents/user/stats");
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                throw {
+                    status: error.response.status,
+                    message:
+                        error.response.data.message ||
+                        "Không thể lấy thống kê tài liệu",
+                    errors: error.response.data.errors,
+                };
+            }
+            throw {
+                status: 500,
+                message: error.message || "Lỗi máy chủ nội bộ",
+            };
+        }
+    },
+    uploadDocument: async (
+        formData: FormData
+    ): Promise<Document> => {
+        try {
+            const response = await privateApi.post("/documents", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+                timeout: 60000,
+            });
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                throw {
+                    status: error.response.status,
+                    message:
+                        error.response.data.message ||
+                        "Không thể tải lên tài liệu",
                     errors: error.response.data.errors,
                 };
             }

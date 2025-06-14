@@ -1,9 +1,11 @@
 import React from "react";
 import { Animated, StyleSheet } from "react-native";
 
-import EmptyState from "./EmptyState";
+import AnalysticsTab from "./AnalyticsTab/AnalyticsTab";
 import DocumentsTab from "./DocumentTab/DocumentTab";
+import EmptyState from "./EmptyState";
 import GroupsTab from "./GroupTab/GroupTab";
+import UploadTab from "./UploadTab/UploadTab";
 
 interface TabContentProps {
     activeTab: string;
@@ -44,10 +46,13 @@ const TabContent = ({ activeTab, opacityAnimation }: TabContentProps) => {
         switch (activeTab) {
             case "Tài liệu":
                 return <DocumentsTab isActive={true} />;
-            
             case "Nhóm":
                 return <GroupsTab isActive={true} />;
-            
+            case "Thống kê":
+                return <AnalysticsTab isActive={true} />;
+            case "Tải lên":
+                return <UploadTab isActive={true} />;
+
             default:
                 const content = getPlaceholderContent();
                 return (

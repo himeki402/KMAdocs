@@ -12,6 +12,9 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { TagService } from '@/services/tagService';
+import { CategoryService } from '@/services/categoryService';
+import { GroupService } from '@/services/groupService';
 
 interface Category {
     id: string;
@@ -36,33 +39,38 @@ function UploadTab({ isActive }: UploadTabProps) {
     const [file, setFile] = useState<any>(null);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [accessType, setAccessType] = useState<'PUBLIC' | 'PRIVATE' | 'GROUP'>('PUBLIC');
+    const [accessType, setAccessType] = useState<'PRIVATE' | 'GROUP'>('PRIVATE');
     const [categoryId, setCategoryId] = useState('');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [groupId, setGroupId] = useState('');
     const [isUploading, setIsUploading] = useState(false);
+    const [ Tags, setTags ] = useState<Tag[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [groups, setGroups] = useState<Group[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Mock data - thay thế bằng API calls thực tế
-    const [categories] = useState<Category[]>([
-        { id: '1', name: 'Tài liệu học tập' },
-        { id: '2', name: 'Nghiên cứu khoa học' },
-        { id: '3', name: 'Báo cáo' },
-        { id: '4', name: 'Luận văn' },
-    ]);
-
-    const [tags] = useState<Tag[]>([
-        { id: '1', name: 'Công nghệ' },
-        { id: '2', name: 'Giáo dục' },
-        { id: '3', name: 'Kinh tế' },
-        { id: '4', name: 'Y học' },
-        { id: '5', name: 'Khoa học' },
-    ]);
-
-    const [groups] = useState<Group[]>([
-        { id: '1', name: 'Nhóm nghiên cứu AI' },
-        { id: '2', name: 'Lớp học Toán' },
-        { id: '3', name: 'Dự án startup' },
-    ]);
+    React.useEffect(() => {
+            const fetchInitialData = async () => {
+                setIsLoading(true);
+                try {
+                    const [tagResponse, categoryResponse, groupResponse] =
+                        await Promise.all([
+                            TagService.getTag(),
+                            CategoryService.getCategories(),
+                            GroupService.getMygroups(),
+                        ]);
+                    setTags(tagResponse.data || []);
+                    setCategories(categoryResponse.data || []);
+                    setGroups(groupResponse.data || []);
+                } catch (error) {
+                    console.error("Error fetching initial data:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+    
+            fetchInitialData();
+        }, []);
 
     // Modals state
     const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -135,7 +143,7 @@ function UploadTab({ isActive }: UploadTabProps) {
             setFile(null);
             setTitle('');
             setDescription('');
-            setAccessType('PUBLIC');
+            setAccessType('PRIVATE');
             setCategoryId('');
             setSelectedTags([]);
             setGroupId('');
@@ -156,7 +164,9 @@ function UploadTab({ isActive }: UploadTabProps) {
     };
 
     const getSelectedTagNames = () => {
-        return tags.filter(tag => selectedTags.includes(tag.id)).map(tag => tag.name);
+        return Tags
+            .filter((tag: Tag) => selectedTags.includes(tag.id))
+            .map((tag: Tag) => tag.name);
     };
 
     return (
@@ -266,7 +276,6 @@ function UploadTab({ isActive }: UploadTabProps) {
                 <Text style={styles.sectionTitle}>Quyền truy cập *</Text>
                 <View style={styles.accessTypeContainer}>
                     {[
-                        { key: 'PUBLIC', label: 'Công khai', icon: 'globe-outline' },
                         { key: 'PRIVATE', label: 'Riêng tư', icon: 'lock-closed-outline' },
                         { key: 'GROUP', label: 'Nhóm', icon: 'people-outline' },
                     ].map((option) => (
@@ -377,7 +386,7 @@ function UploadTab({ isActive }: UploadTabProps) {
                             </TouchableOpacity>
                         </View>
                         <FlatList
-                            data={tags}
+                            data={Tags}
                             keyExtractor={(item) => item.id}
                             renderItem={({ item }) => (
                                 <TouchableOpacity 

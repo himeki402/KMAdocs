@@ -1,6 +1,7 @@
 import useSearchResult from "@/hooks/useSearchResult";
 import { CategoryService } from "@/services/categoryService";
 import { Category } from "@/types/category";
+import { Document } from "@/types/document";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -55,6 +56,13 @@ const ExploreScreen = () => {
             setIsSearching(true);
             performSearch();
         }
+    };
+
+    const handleDocumentPress = (document: Document) => {
+        router.push({
+            pathname: "/document/[id]",
+            params: { id: document.id }
+        });
     };
 
     const handleSearchKeyPress = () => {
@@ -114,7 +122,7 @@ const ExploreScreen = () => {
     );
 
     const renderDocumentItem = ({ item }: { item: any }) => (
-        <TouchableOpacity style={styles.documentItem} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.documentItem} activeOpacity={0.7} onPress={() => handleDocumentPress(item)}>
             <View style={styles.documentThumbnail}>
                 <Ionicons name="document-text" size={32} color="#667eea" />
                 <View style={styles.pdfBadge}>
@@ -128,7 +136,7 @@ const ExploreScreen = () => {
                 {item.subtitle ? (
                     <Text style={styles.documentSubtitle}>{item.subtitle}</Text>
                 ) : null}
-                <Text style={styles.documentAuthor}>{item.author}</Text>
+                <Text style={styles.documentAuthor}>{item.createdByName}</Text>
             </View>
             <TouchableOpacity style={styles.bookmarkButton}>
                 <Ionicons name="bookmark-outline" size={24} color="#667eea" />

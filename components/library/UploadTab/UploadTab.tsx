@@ -12,6 +12,7 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { TagService } from '@/services/tagService';
 import { CategoryService } from '@/services/categoryService';
 import { GroupService } from '@/services/groupService';
@@ -36,7 +37,7 @@ interface UploadTabProps {
 }
 
 function UploadTab({ isActive }: UploadTabProps) {
-    const [file, setFile] = useState<any>(null);
+    const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [accessType, setAccessType] = useState<'PRIVATE' | 'GROUP'>('PRIVATE');
@@ -44,44 +45,68 @@ function UploadTab({ isActive }: UploadTabProps) {
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [groupId, setGroupId] = useState('');
     const [isUploading, setIsUploading] = useState(false);
-    const [ Tags, setTags ] = useState<Tag[]>([]);
+    const [Tags, setTags] = useState<Tag[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [groups, setGroups] = useState<Group[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     React.useEffect(() => {
-            const fetchInitialData = async () => {
-                setIsLoading(true);
-                try {
-                    const [tagResponse, categoryResponse, groupResponse] =
-                        await Promise.all([
-                            TagService.getTag(),
-                            CategoryService.getCategories(),
-                            GroupService.getMygroups(),
-                        ]);
-                    setTags(tagResponse.data || []);
-                    setCategories(categoryResponse.data || []);
-                    setGroups(groupResponse.data || []);
-                } catch (error) {
-                    console.error("Error fetching initial data:", error);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-    
-            fetchInitialData();
-        }, []);
+        const fetchInitialData = async () => {
+            setIsLoading(true);
+            try {
+                const [tagResponse, categoryResponse, groupResponse] =
+                    await Promise.all([
+                        TagService.getTag(),
+                        CategoryService.getCategories(),
+                        GroupService.getMygroups(),
+                    ]);
+                setTags(tagResponse.data || []);
+                setCategories(categoryResponse.data || []);
+                setGroups(groupResponse.data || []);
+            } catch (error) {
+                console.error("Error fetching initial data:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchInitialData();
+    }, []);
 
     // Modals state
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [showTagModal, setShowTagModal] = useState(false);
     const [showGroupModal, setShowGroupModal] = useState(false);
 
-    const handleFileSelection = () => {
-        // Implement file picker logic here
-        Alert.alert('Chọn tệp', 'Chức năng chọn tệp sẽ được triển khai với thư viện document picker');
-        // Mock file selection
-        setFile({ name: 'document-sample.pdf', size: 1024000 });
+    const handleFileSelection = async () => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'text/plain',
+                ],
+                copyToCacheDirectory: true,
+                multiple: false,
+            });
+
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+                const selectedFile = result.assets[0];
+
+                // Kiểm tra kích thước file (giới hạn 10MB)
+                const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+                if (selectedFile.size && selectedFile.size > maxSize) {
+                    Alert.alert('Lỗi', 'Kích thước tệp không được vượt quá 10MB');
+                    return;
+                }
+                
+                setFile(selectedFile);
+            }
+        } catch (error) {
+            console.error('Error picking document:', error);
+            Alert.alert('Lỗi', 'Không thể chọn tệp. Vui lòng thử lại.');
+        }
     };
 
     const handleTagToggle = (tagId: string) => {
@@ -90,6 +115,13 @@ function UploadTab({ isActive }: UploadTabProps) {
                 ? prev.filter(id => id !== tagId)
                 : [...prev, tagId]
         );
+    };
+
+    const formatFileSize = (bytes?: number) => {
+        if (!bytes) return '';
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
     };
 
     const handleUpload = async () => {
@@ -116,9 +148,14 @@ function UploadTab({ isActive }: UploadTabProps) {
         try {
             const formDataToSend = new FormData();
             
-            if (file) {
-                formDataToSend.append("file", file);
-            }
+            // Tạo object file cho FormData
+            const fileObject = {
+                uri: file.uri,
+                type: file.mimeType || 'application/octet-stream',
+                name: file.name,
+            } as any;
+            
+            formDataToSend.append("file", fileObject);
             formDataToSend.append("title", title.trim());
             formDataToSend.append("description", description.trim());
             formDataToSend.append("accessType", accessType);
@@ -134,6 +171,9 @@ function UploadTab({ isActive }: UploadTabProps) {
                 formDataToSend.append("groupId", groupId);
             }
 
+            // Gọi API thực tế ở đây
+            // const response = await YourUploadService.uploadDocument(formDataToSend);
+            
             // Simulate API call
             await new Promise(resolve => setTimeout(resolve, 2000));
             
@@ -149,6 +189,7 @@ function UploadTab({ isActive }: UploadTabProps) {
             setGroupId('');
             
         } catch (error) {
+            console.error('Upload error:', error);
             Alert.alert('Lỗi', 'Có lỗi xảy ra khi tải lên tài liệu');
         } finally {
             setIsUploading(false);
@@ -189,9 +230,16 @@ function UploadTab({ isActive }: UploadTabProps) {
                         size={24} 
                         color={file ? "#28a745" : "#6c757d"} 
                     />
-                    <Text style={[styles.fileSelectorText, file && styles.fileSelectorTextSelected]}>
-                        {file ? file.name : "Nhấn để chọn tệp"}
-                    </Text>
+                    <View style={styles.fileInfo}>
+                        <Text style={[styles.fileSelectorText, file && styles.fileSelectorTextSelected]}>
+                            {file ? file.name : "Nhấn để chọn tệp"}
+                        </Text>
+                        {file && file.size && (
+                            <Text style={styles.fileSize}>
+                                {formatFileSize(file.size)}
+                            </Text>
+                        )}
+                    </View>
                     {file && (
                         <TouchableOpacity 
                             style={styles.removeFileButton}
@@ -201,6 +249,9 @@ function UploadTab({ isActive }: UploadTabProps) {
                         </TouchableOpacity>
                     )}
                 </TouchableOpacity>
+                <Text style={styles.fileNote}>
+                    Hỗ trợ: PDF. Tối đa 10MB.
+                </Text>
             </View>
 
             {/* Title */}
@@ -514,15 +565,28 @@ const styles = StyleSheet.create({
         borderColor: "#007bff",
         borderStyle: "solid",
     },
-    fileSelectorText: {
+    fileInfo: {
         flex: 1,
         marginLeft: 12,
+    },
+    fileSelectorText: {
         fontSize: 14,
         color: "#6c757d",
     },
     fileSelectorTextSelected: {
         color: "#007bff",
         fontWeight: "500",
+    },
+    fileSize: {
+        fontSize: 12,
+        color: "#6c757d",
+        marginTop: 2,
+    },
+    fileNote: {
+        fontSize: 12,
+        color: "#6c757d",
+        marginTop: 8,
+        fontStyle: "italic",
     },
     removeFileButton: {
         marginLeft: 8,
